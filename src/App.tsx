@@ -43,10 +43,14 @@ export const App = () => {
       return
     }
     // targetBoardの座標を更新
+    if (targetBoard[value.x][value.y] !== 0) {
+      return
+    }
     targetBoard[value.x][value.y] = currentPlayer.name === "player1" ? 1 : 2
     setIsPlayerSelected(true)
     // newBoard[index]を更新
     newBoard[index] = targetBoard
+    judgeWinner(newBoard)
     // boardを更新
     setBoard(newBoard)
   }
@@ -85,7 +89,6 @@ export const App = () => {
 
     // 一度、全ての盤面を1つの配列にまとめる
     const allBoard = newBoard.flat().flat()
-    console.log(allBoard)
     // 縦の判定
     const size = 6;
     // 勝利したユーザーを格納する変数
@@ -111,23 +114,59 @@ export const App = () => {
       [0, 1, 8, 9, 10]
     ]
 
+    // あらかじめ、ななめの判定を行うための配列を作成
+    // ななめの判定は、最初の数字をxとして、[x, x+4, x+8, x+12, x+16]か、[x, x+4, x+6, x+12, x+16]のいずれかである
+    const diagonal = [
+      [0, 4, 8, 27, 31],
+      [4, 8, 27, 31, 35],
+      [1, 5, 15, 28, 32],
+      [3, 7, 20, 30, 34],
+      [11, 13, 15, 20, 22],
+      [13, 15, 20, 22, 24],
+      [8, 10, 12, 19, 21],
+      [14, 16, 23, 25, 27]
+    ]
+
     // 縦の判定
     // それぞれのパターンについて、全てのマスについて判定を行う
     // 6列x2パターンに対して、最初のマスの値を取得し、同じ値がverticalのパターン座標で5つ連続しているかどうかを判定する
-    let baseNum = 0
-    for (let i = 0; i < size; i++) {
+    // 縦左
+    for (let i = 0; i < size / 2; i++) {
       // 縦の上段
-      baseNum = allBoard[i]
-      if (baseNum === 0) { continue }
-      if (vertical[0].every((n) => allBoard[n + i] === baseNum)) {
-        winner = baseNum
+      const baseNum1 = allBoard[i]
+      const baseNum2 = allBoard[i+3]
+
+      if (baseNum1 === 0 && baseNum2 === 0) { continue }
+      if (baseNum1 !== 0 && vertical[0].every((n) => allBoard[n + i] === baseNum1)) {
+        winner = baseNum1
         break
       }
       // 縦の下段
-      baseNum = allBoard[i+3]
-      if (baseNum === 0) { continue }
-      if (vertical[1].every((n) => allBoard[n + i] === baseNum)) {
-        winner = baseNum
+      if (baseNum2 !== 0 && vertical[1].every((n) => allBoard[n + i + 3] === baseNum2)) {
+        winner = baseNum2
+        break
+      }
+    }
+    if (winner !== 0) {
+      setBoard(newBoard)
+      console.log(`${winner}の勝ちA`)
+      setResult({flag: winner !== 0, player: winner})
+      return winner !== 0
+    }
+    for (let i = 9; i < size * 2; i++) {
+      // 縦の上段
+      const baseNum1 = allBoard[i]
+      const baseNum2 = allBoard[i+3]
+
+      if (baseNum1 === 0 && baseNum2 === 0) { continue }
+      
+      if (baseNum1 !== 0 && vertical[0].every((n) => allBoard[n + i] === baseNum1)) {
+        winner = baseNum1
+        continue
+      }
+      // 縦の下段
+      if (baseNum2 !== 0 && vertical[1].every((n) => allBoard[n + i + 3] === baseNum2)) {
+        winner = baseNum2
         break
       }
     }
@@ -139,51 +178,64 @@ export const App = () => {
     }
     // 横の上3行
     for (let i = 0; i <= size; i+=3) {
+      const baseNum1 = allBoard[i]
+      const baseNum2 = allBoard[i + 1]
       // 横の左側
-      baseNum = allBoard[i]
-      if (baseNum === 0) { continue }
-      if (horizontal[0].every((n) => allBoard[n + i] === baseNum)) {
-        winner = baseNum
+      if (baseNum1 === 0 && baseNum2 === 0) { continue }
+      if (baseNum1 !== 0 && horizontal[0].every((n) => allBoard[n + i] === baseNum1)) {
+        winner = baseNum1
         break
       }
       // 横の右側
-      baseNum = allBoard[i + 1]
-      if (baseNum === 0) { continue }
-      if (horizontal[1].every((n) => allBoard[n + i] === baseNum)) {
-        winner = baseNum
+      if (baseNum2 !== 0 && horizontal[1].every((n) => allBoard[n + i + 1] === baseNum2)) {
+        winner = baseNum2
         break
       }
     }
     if (winner !== 0) {
       setBoard(newBoard)
-      console.log(`${winner}の勝ちB`)
       setResult({flag: winner !== 0, player: winner})
       return winner !== 0
     }
     // 横の下3行
-    for (let i = 18; i <= 24; i+=3) {
+    for (let i = 18; i <= size * 4; i+=3) {
+      const baseNum1 = allBoard[i]
+      const baseNum2 = allBoard[i + 1]
       // 横の左側
-      baseNum = allBoard[i]
-      console.log(`baseNum: ${baseNum}`)
-      if (baseNum === 0) { continue }
-      if (horizontal[0].every((n) => allBoard[n + i] === baseNum)) {
-        winner = baseNum
+      if (baseNum1 === 0 && baseNum2 === 0) { continue }
+      if (baseNum1 !== 0 && horizontal[0].every((n) => allBoard[n + i] === baseNum1)) {
+        winner = baseNum1
         break
       }
       // 横の右側
-      baseNum = allBoard[i + 1]
-      if (baseNum === 0) { continue }
-      horizontal.forEach((n) => console.log(`n: ${n}, allBoard[n + i]: ${allBoard[n + i]}`))
-      if (horizontal[1].every((n) => allBoard[n + i] === baseNum)) {
-        winner = baseNum
+      if (baseNum2 !== 0 && horizontal[1].every((n) => allBoard[n + i + 1] === baseNum2)) {
+        winner = baseNum2
         break
       }
     }
+    if (winner !== 0) {
+      setBoard(newBoard)
+      setResult({flag: winner !== 0, player: winner})
+      return winner !== 0
+    }
+    // ななめの判定
+    diagonal.some((pattern) => {
+      // diagonal[i]の要素をindexとして、allBoardの値が0以外かつ、patternの要素が全て同じ値かどうかを判定
+      const result = pattern.every(n => allBoard[n] !== 0 && allBoard[n] === allBoard[pattern[0]])
+      // resultがtrueの場合、winnerにallBoard[pattern[0]]を代入
+      if (result) {
+        winner = allBoard[pattern[0]]
+      }
+    })
 
     setBoard(newBoard)
-    console.log(`${winner}の勝ちC`)  
     if (winner !== 0) {
       setResult({flag: winner !== 0, player: winner})
+    }
+    // allBoardがすべて埋まっている場合、引き分け
+    if (winner === 0 && allBoard.every((n) => n !== 0)) {
+      setResult({flag: true, player: 3})
+      return true
     }
     return winner !== 0
   }
@@ -195,21 +247,29 @@ export const App = () => {
 
   // リセットボタンを押したときの処理
   const handleReset = () => {
+    setBoard([
+      [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+      [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+      [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+      [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+    ])
     setResult({flag: false, player: 0})
+    setIsPlayerSelected(false)
     setCurrentPlayer({ player1: true, player2: false })
   }
 
   const Player1Props: Player = {
     color: "#FF0000",
-    name: "player1",
+    name: "Player1",
   }
 
   const Player2Props: Player = {
     color: "#0000FF",
-    name: "player2",
+    name: "Player2",
   }
 
   const handleClick = (target: number, direction: "left" | "right") => {
+    if (!isPlayerSelected) { return }
     if (result.flag) {
       // 勝敗が決まっている場合は何もしない
       return
@@ -242,13 +302,22 @@ export const App = () => {
   return (
     <>
       <CssBaseline />
-      <h1 style={{ textAlign: "center" }}>勝敗:{result.flag && result.player === 1 ? Player1Props.name : result.player === 2 && Player2Props.name} {result.flag && <Button onClick={handleReset}>リセット</Button>}</h1>
+      {
+        result.flag ? (
+          <h1 style={{ textAlign: "center" }}>勝敗:{result.player === 1 ? Player1Props.name : result.player === 2 ? Player2Props.name : result.player === 3 && "引き分け"} {<Button variant={"contained"} color={"primary"} onClick={handleReset}>リセット</Button>}</h1>
+        ) : (
+          <>
+            <h1 style={{ textAlign: "center" }}>{getCurrentPlayer().name}の操作です</h1>
+            <p style={{ textAlign: "center" }}>{isPlayerSelected ? "盤を回転させてください" : "マスを押してください"}</p>
+          </>
+        )
+      }
 
       <Box sx={{ width: "clamp(100px, min(100vw, 100vh), 600px)", aspectRatio: 1, display: "flex", alignItems: "center", justifyContent: "center", margin: "auto" }}>
         {/* 要素を4つ、2x2で中央寄せ */}
         <Grid container columns={4} alignContent={"center"} rowSpacing={1} justifyContent="center" alignItems="center" style={{ width: "100%", height: "100%" }}>
           {/* <Grid size={1}></Grid> */}
-          <Grid size={4} container columns={4} spacing={1}>
+          <Grid size={4} container columns={4} spacing={1} justifyContent={"center"}>
             <Grid size={2} justifyContent={"right"}>
               <Box style={
                 { height: "100%", maxHeight: "min(40vw, 40vh)", aspectRatio: 1, marginLeft: "auto", display: "grid", gridTemplateColumns: "auto 1fr", gridTemplateRows: "auto 1fr", gridTemplateAreas: '". right" "left paper"', gap: "1px" }
@@ -265,9 +334,9 @@ export const App = () => {
                 </Paper>
               </Box>
             </Grid>
-            <Grid size={2}>
+            <Grid size={2} justifyContent={"left"}>
               <Box style={
-                { height: "100%", maxHeight: "min(40vw, 40vh)", aspectRatio: 1, marginLeft: "auto", display: "grid", gridTemplateColumns: "1fr auto", gridTemplateRows: "auto 1fr", gridTemplateAreas: '"left ." "paper right"', gap: "1px" }
+                { height: "100%", maxHeight: "min(40vw, 40vh)", aspectRatio: 1, marginRight: "auto", display: "grid", gridTemplateColumns: "1fr auto", gridTemplateRows: "auto 1fr", gridTemplateAreas: '"left ." "paper right"', gap: "1px" }
               } >
                 <Box sx={{ gridArea: "right", alignContent: "start" }}>
                   <Turn isLeft={false} rotate={90} color={getCurrentPlayer().color} onClick={() => handleClick(1, "right")} />
@@ -283,8 +352,8 @@ export const App = () => {
           </Grid>
           {/* <Grid size={1}></Grid>
           <Grid size={1}></Grid> */}
-          <Grid size={4} container columns={4} spacing={1}>
-            <Grid size={2}>
+          <Grid size={4} container columns={4} spacing={1} justifyContent={"center"}>
+            <Grid size={2} justifyContent={"right"}>
               <Box style={
                 { height: "100%", maxHeight: "min(40vw, 40vh)", aspectRatio: 1, marginLeft: "auto", display: "grid", gridTemplateColumns: "auto 1fr", gridTemplateRows: "1fr auto", gridTemplateAreas: '"right paper" ". left"', gap: "1px" }
               } >
@@ -299,9 +368,9 @@ export const App = () => {
                 </Paper>
               </Box>
             </Grid>
-            <Grid size={2}>
+            <Grid size={2} justifyContent={"left"}>
               <Box style={
-                { height: "100%", maxHeight: "min(40vw, 40vh)", aspectRatio: 1, marginLeft: "auto", display: "grid", gridTemplateColumns: "1fr auto", gridTemplateRows: "1fr auto", gridTemplateAreas: '"paper left" "right ."', gap: "1px" }
+                { height: "100%", maxHeight: "min(40vw, 40vh)", aspectRatio: 1, marginRight: "auto", display: "grid", gridTemplateColumns: "1fr auto", gridTemplateRows: "1fr auto", gridTemplateAreas: '"paper left" "right ."', gap: "1px" }
               } >
                 <Box sx={{ gridArea: "right", textAlign: "right" }}>
                   <Turn isLeft={false} rotate={180} color={getCurrentPlayer().color} onClick={() => handleClick(3, "right")} />

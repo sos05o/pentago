@@ -1,3 +1,4 @@
+import { Grid2 as Grid, Box } from '@mui/material';
 import React from 'react';
 
 type SquareProps = {
@@ -21,22 +22,24 @@ const Square: React.FC<SquareProps> = ({ grid, index, updateBoard }) => {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
+    <Grid container columns={3} spacing={1} style={{ width: '100%', height: '100%', borderRadius: '3px', padding: '4px' }}>
       {grid.map((row, rowIndex) =>
         row.map((value, colIndex) => (
-          <div
+          <Grid
+            size={1}
             key={`${rowIndex}-${colIndex}`}
             style={{
-              width: '50px',
-              height: '50px',
               backgroundColor: getColor(value),
-              border: '1px solid black',
+              border: `3px solid ${value !== 0 ? getColor(value) : "rgb(121, 130, 122)"}`,
+              borderRadius: '3px',
             }}
             onClick={() => updateBoard(index, { x: rowIndex, y: colIndex })}
-          ></div>
+          >
+            <Box />
+          </Grid>
         ))
       )}
-    </div>
+    </Grid>
   );
 };
 
