@@ -46,7 +46,7 @@ export const App = () => {
     if (targetBoard[value.x][value.y] !== 0) {
       return
     }
-    targetBoard[value.x][value.y] = currentPlayer.name === "player1" ? 1 : 2
+    targetBoard[value.x][value.y] = currentPlayer.name === "Player1" ? 1 : 2
     setIsPlayerSelected(true)
     // newBoard[index]を更新
     newBoard[index] = targetBoard
