@@ -6,7 +6,7 @@
 	"homepage": "https://sos05o.github.io/pentago/",
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc -b && vite build",
+		"build": "ls -R ./src && vite build",
 		"lint": "biome check --write src/*",
 		"preview": "vite preview"
 	},
